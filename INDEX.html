@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+
+        #game-container {
+            border: 2px solid #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 5px;
+            width: 300px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .cell.X {
+            color: #ff6666; /* Red for X */
+        }
+
+        .cell.O {
+            color: #6699ff; /* Blue for O */
+        }
+
+        .cell:hover {
+            background-color: #ddd;
+        }
+
+        .winner {
+            background-color: #9effa9; /* Light green for winning cells */
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #scoreboard {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .player-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #new-match {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+    </style>
+    <title>Tic-Tac-Toe</title>
+</head>
+<body>
+    <div id="game-container">
+        <div id="board" class="board" onclick="handleClick(event)">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <div id="message"></div>
+        <div id="scoreboard" class="player-score">
+            <div>
+                <div>X (Player): <span id="playerXScore" style="color: #ff6666;">0</span></div>
+                <div>O (AI): <span id="playerOScore" style="color: #6699ff;">0</span></div>
+            </div>
+            <button id="new-match" onclick="newMatch()">New Match</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let playerXScore = 0;
+        let playerOScore = 0;
+
+        function handleClick(event) {
+            const index = event.target.dataset.index;
+
+            if (gameBoard[index] === '' && gameActive) {
+                gameBoard[index] = currentPlayer;
+                event.target.innerText = currentPlayer;
+                event.target.classList.add(currentPlayer);
+
+                if (checkWinner()) {
+                    displayMessage(`Player ${currentPlayer} wins!`);
+                    highlightWinnerCells();
+                    updateScore();
+                    gameActive = false;
+                } else if (gameBoard.every(cell => cell !== '')) {
+                    displayMessage('It\'s a draw!');
+                    gameActive = false;
+                } else {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                }
+            }
+        }
+
+        function checkWinner() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]              // Diagonals
+            ];
+
+            return winPatterns.some(pattern =>
+                pattern.every(index => gameBoard[index] === currentPlayer)
+            );
+        }
+
+        function highlightWinnerCells() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]              // Diagonals
+            ];
+
+            winPatterns.forEach(pattern => {
+                const [a, b, c] = pattern;
+                const cells = document.querySelectorAll('.cell');
+
+                if (gameBoard[a] === currentPlayer && gameBoard[b] === currentPlayer && gameBoard[c] === currentPlayer) {
+                    cells[a].classList.add('winner');
+                    cells[b].classList.add('winner');
+                    cells[c].classList.add('winner');
+                }
+            });
+        }
+
+        function displayMessage(message) {
+            document.getElementById('message').innerText = message;
+        }
+
+        function updateScore() {
+            if (currentPlayer === 'X') {
+                playerXScore++;
+                document.getElementById('playerXScore').innerText = playerXScore;
+            } else {
+                playerOScore++;
+                document.getElementById('playerOScore').innerText = playerOScore;
+            }
+        }
+
+        function newMatch() {
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            updateBoard();
+            document.getElementById('message').innerText = '';
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('winner');
+                cell.innerText = '';
+            });
+        }
+
+        function updateBoard() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                cell.innerText = gameBoard[index];
+            });
+        }
+    </script>
+</body>
+</html>
